@@ -47,5 +47,8 @@
   "bugs": {
     "url": "https://github.com/xswap/governance/issues"
   },
-  "homepage": "https://xswap.org"
+  "homepage": "https://xswap.org",
+  "dependencies": {
+    "@types/jquery": "^3.5.5"
+  }
 }
