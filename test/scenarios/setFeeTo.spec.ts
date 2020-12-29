@@ -4,8 +4,8 @@ import { solidity, MockProvider, createFixtureLoader, deployContract } from 'eth
 
 import XswapV2Factory from '@xswap/v2-core/build/XswapV2Factory.json'
 import XswapV2Pair from '@xswap/v2-core/build/XswapV2Pair.json'
-import FeeToSetter from '../../build/FeeToSetter.json'
-import FeeTo from '../../build/FeeTo.json'
+import XswapFeeToSetter from '../../build/XswapFeeToSetter.json'
+import XswapFeeTo from '../../build/XswapFeeTo.json'
 import Xswap from '../../build/Xswap.json'
 
 import { governanceFixture } from '../fixtures'
@@ -13,7 +13,7 @@ import { mineBlock, expandTo18Decimals } from '../utils'
 
 chai.use(solidity)
 
-describe('scenario:FeeTo', () => {
+describe('scenario:XswapFeeTo', () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: 'istanbul',
@@ -33,36 +33,36 @@ describe('scenario:FeeTo', () => {
     factory = await deployContract(wallet, XswapV2Factory, [wallet.address])
   })
 
-  let feeToSetter: Contract
+  let xswapfeeToSetter: Contract
   let vestingEnd: number
-  let feeTo: Contract
-  beforeEach('deploy feeToSetter vesting contract', async () => {
-    // deploy feeTo
+  let xswapfeeTo: Contract
+  beforeEach('deploy xswapfeeToSetter vesting contract', async () => {
+    // deploy xswapfeeTo
     // constructor arg should be timelock, just mocking for testing purposes
-    feeTo = await deployContract(wallet, FeeTo, [wallet.address])
+    xswapfeeTo = await deployContract(wallet, XswapFeeTo, [wallet.address])
 
     const { timestamp: now } = await provider.getBlock('latest')
     vestingEnd = now + 60
     // 3rd constructor arg should be timelock, just mocking for testing purposes
-    // 4th constructor arg should be feeTo, just mocking for testing purposes
-    feeToSetter = await deployContract(wallet, FeeToSetter, [
+    // 4th constructor arg should be xswapfeeTo, just mocking for testing purposes
+    xswapfeeToSetter = await deployContract(wallet, XswapFeeToSetter, [
       factory.address,
       vestingEnd,
       wallet.address,
-      feeTo.address,
+      xswapfeeTo.address,
     ])
 
-    // set feeToSetter to be the vesting contract
+    // set xswapfeeToSetter to be the vesting contract
     await factory.setFeeToSetter(feeToSetter.address)
 
     await mineBlock(provider, vestingEnd)
   })
 
   it('permissions', async () => {
-    await expect(feeTo.connect(other).setOwner(other.address)).to.be.revertedWith('FeeTo::setOwner: not allowed')
+    await expect(xswapfeeTo.connect(other).setOwner(other.address)).to.be.revertedWith('XswapFeeTo::setOwner: not allowed')
 
-    await expect(feeTo.connect(other).setFeeRecipient(other.address)).to.be.revertedWith(
-      'FeeTo::setFeeRecipient: not allowed'
+    await expect(xswapfeeTo.connect(other).setFeeRecipient(other.address)).to.be.revertedWith(
+      'XswapFeeTo::setFeeRecipient: not allowed'
     )
   })
 
@@ -79,7 +79,7 @@ describe('scenario:FeeTo', () => {
     let pair: Contract
     beforeEach('create fee liquidity', async () => {
       // turn the fee on
-      await feeToSetter.toggleFees(true)
+      await xswapfeeToSetter.toggleFees(true)
 
       // create the pair
       await factory.createPair(tokens[0].address, tokens[1].address)
@@ -106,61 +106,61 @@ describe('scenario:FeeTo', () => {
     })
 
     it('updateTokenAllowState', async () => {
-      await feeTo.updateTokenAllowState(tokens[0].address, true)
-      let tokenAllowState = await feeTo.tokenAllowStates(tokens[0].address)
+      await xswapfeeTo.updateTokenAllowState(tokens[0].address, true)
+      let tokenAllowState = await XswapfeeTo.tokenAllowStates(tokens[0].address)
       expect(tokenAllowState[0]).to.be.true
       expect(tokenAllowState[1]).to.be.eq(1)
 
-      await feeTo.updateTokenAllowState(tokens[0].address, false)
-      tokenAllowState = await feeTo.tokenAllowStates(tokens[0].address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, false)
+      tokenAllowState = await XswapfeeTo.tokenAllowStates(tokens[0].address)
       expect(tokenAllowState[0]).to.be.false
       expect(tokenAllowState[1]).to.be.eq(2)
 
-      await feeTo.updateTokenAllowState(tokens[0].address, false)
-      tokenAllowState = await feeTo.tokenAllowStates(tokens[0].address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, false)
+      tokenAllowState = await XswapfeeTo.tokenAllowStates(tokens[0].address)
       expect(tokenAllowState[0]).to.be.false
       expect(tokenAllowState[1]).to.be.eq(2)
 
-      await feeTo.updateTokenAllowState(tokens[0].address, true)
-      tokenAllowState = await feeTo.tokenAllowStates(tokens[0].address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, true)
+      tokenAllowState = await XswapfeeTo.tokenAllowStates(tokens[0].address)
       expect(tokenAllowState[0]).to.be.true
       expect(tokenAllowState[1]).to.be.eq(2)
 
-      await feeTo.updateTokenAllowState(tokens[0].address, false)
-      tokenAllowState = await feeTo.tokenAllowStates(tokens[0].address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, false)
+      tokenAllowState = await XswapfeeTo.tokenAllowStates(tokens[0].address)
       expect(tokenAllowState[0]).to.be.false
       expect(tokenAllowState[1]).to.be.eq(3)
     })
 
     it('claim is a no-op if renounce has not been called', async () => {
-      await feeTo.updateTokenAllowState(tokens[0].address, true)
-      await feeTo.updateTokenAllowState(tokens[1].address, true)
-      await feeTo.setFeeRecipient(other.address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, true)
+      await XswapfeeTo.updateTokenAllowState(tokens[1].address, true)
+      await XswapfeeTo.setFeeRecipient(other.address)
 
       const balanceBefore = await pair.balanceOf(other.address)
       expect(balanceBefore).to.be.eq(0)
-      await feeTo.claim(pair.address)
+      await XswapfeeTo.claim(pair.address)
       const balanceAfter = await pair.balanceOf(other.address)
       expect(balanceAfter).to.be.eq(0)
     })
 
     it('renounce works', async () => {
-      await feeTo.updateTokenAllowState(tokens[0].address, true)
-      await feeTo.updateTokenAllowState(tokens[1].address, true)
-      await feeTo.setFeeRecipient(other.address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, true)
+      await XswapfeeTo.updateTokenAllowState(tokens[1].address, true)
+      await XswapfeeTo.setFeeRecipient(other.address)
 
       const totalSupplyBefore = await pair.totalSupply()
-      await feeTo.renounce(pair.address, { gasLimit: 9999999 })
+      await XswapfeeTo.renounce(pair.address, { gasLimit: 9999999 })
       const totalSupplyAfter = await pair.totalSupply()
       expect(totalSupplyAfter.lt(totalSupplyBefore)).to.be.true
     })
 
     it('claim works', async () => {
-      await feeTo.updateTokenAllowState(tokens[0].address, true)
-      await feeTo.updateTokenAllowState(tokens[1].address, true)
-      await feeTo.setFeeRecipient(other.address)
+      await XswapfeeTo.updateTokenAllowState(tokens[0].address, true)
+      await XswapfeeTo.updateTokenAllowState(tokens[1].address, true)
+      await XswapfeeTo.setFeeRecipient(other.address)
 
-      await feeTo.renounce(pair.address, { gasLimit: 9999999 })
+      await XswapfeeTo.renounce(pair.address, { gasLimit: 9999999 })
 
       // swap
       await tokens[0].transfer(pair.address, expandTo18Decimals(1).div(10))
@@ -176,7 +176,7 @@ describe('scenario:FeeTo', () => {
       await pair.mint(wallet.address, { gasLimit: 9999999 })
 
       const balanceBefore = await pair.balanceOf(other.address)
-      await feeTo.claim(pair.address, { gasLimit: 9999999 })
+      await XswapfeeTo.claim(pair.address, { gasLimit: 9999999 })
       const balanceAfter = await pair.balanceOf(other.address)
       expect(balanceAfter.gt(balanceBefore)).to.be.true
     })
