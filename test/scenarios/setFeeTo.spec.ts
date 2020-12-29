@@ -6,7 +6,7 @@ import XswapV2Factory from '@xswap/v2-core/build/XswapV2Factory.json'
 import XswapV2Pair from '@xswap/v2-core/build/XswapV2Pair.json'
 import FeeToSetter from '../../build/FeeToSetter.json'
 import FeeTo from '../../build/FeeTo.json'
-import Uni from '../../build/Uni.json'
+import Xswap from '../../build/Xswap.json'
 
 import { governanceFixture } from '../fixtures'
 import { mineBlock, expandTo18Decimals } from '../utils'
@@ -70,9 +70,9 @@ describe('scenario:FeeTo', () => {
     const tokens: Contract[] = []
     beforeEach('make test tokens', async () => {
       const { timestamp: now } = await provider.getBlock('latest')
-      const token0 = await deployContract(wallet, Uni, [wallet.address, constants.AddressZero, now + 60 * 60])
+      const token0 = await deployContract(wallet, Xswap, [wallet.address, constants.AddressZero, now + 60 * 60])
       tokens.push(token0)
-      const token1 = await deployContract(wallet, Uni, [wallet.address, constants.AddressZero, now + 60 * 60])
+      const token1 = await deployContract(wallet, Xswap, [wallet.address, constants.AddressZero, now + 60 * 60])
       tokens.push(token1)
     })
 
