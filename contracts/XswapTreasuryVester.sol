@@ -5,7 +5,7 @@ import "./SafeMath.sol";
 contract EliteTreasuryVester {
     using SafeMath for uint;
 
-    address public elt;
+    address public xswap;
     address public recipient;
 
     uint public vestingAmount;
@@ -16,7 +16,7 @@ contract EliteTreasuryVester {
     uint public lastUpdate;
 
     constructor(
-        address elt_,
+        address xswap_,
         address recipient_,
         uint vestingAmount_,
         uint vestingBegin_,
@@ -27,7 +27,7 @@ contract EliteTreasuryVester {
         require(vestingCliff_ >= vestingBegin_, 'EliteTreasuryVester::constructor: cliff is too early');
         require(vestingEnd_ > vestingCliff_, 'EliteTreasuryVester::constructor: end is too early');
 
-        elt = elt_;
+        xswap = xswap_;
         recipient = recipient_;
 
         vestingAmount = vestingAmount_;
@@ -47,16 +47,16 @@ contract EliteTreasuryVester {
         require(block.timestamp >= vestingCliff, 'EliteTreasuryVester::claim: not time yet');
         uint amount;
         if (block.timestamp >= vestingEnd) {
-            amount = IElt(elt).balanceOf(address(this));
+            amount = IXswap(xswap).balanceOf(address(this));
         } else {
             amount = vestingAmount.mul(block.timestamp - lastUpdate).div(vestingEnd - vestingBegin);
             lastUpdate = block.timestamp;
         }
-        IElt(elt).transfer(recipient, amount);
+        IXswap(xswap).transfer(recipient, amount);
     }
 }
 
-interface IElt {
+interface IXswap {
     function balanceOf(address account) external view returns (uint);
     function transfer(address dst, uint rawAmount) external returns (bool);
 }

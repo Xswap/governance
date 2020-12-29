@@ -2,7 +2,7 @@ pragma solidity ^0.5.16;
 
 import "./SafeMath.sol";
 
-contract EliteTimelock {
+contract XswapTimelock {
     using SafeMath for uint;
 
     event NewAdmin(address indexed newAdmin);
@@ -24,8 +24,8 @@ contract EliteTimelock {
 
 
     constructor(address admin_, uint delay_) public {
-        require(delay_ >= MINIMUM_DELAY, "EliteTimelock::constructor: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "EliteTimelock::setDelay: Delay must not exceed maximum delay.");
+        require(delay_ >= MINIMUM_DELAY, "XswapTimelock::constructor: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "XswapTimelock::setDelay: Delay must not exceed maximum delay.");
 
         admin = admin_;
         delay = delay_;
@@ -34,16 +34,16 @@ contract EliteTimelock {
     function() external payable { }
 
     function setDelay(uint delay_) public {
-        require(msg.sender == address(this), "EliteTimelock::setDelay: Call must come from EliteTimelock.");
-        require(delay_ >= MINIMUM_DELAY, "EliteTimelock::setDelay: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "EliteTimelock::setDelay: Delay must not exceed maximum delay.");
+        require(msg.sender == address(this), "XswapTimelock::setDelay: Call must come from XswapTimelock.");
+        require(delay_ >= MINIMUM_DELAY, "XswapTimelock::setDelay: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "XswapTimelock::setDelay: Delay must not exceed maximum delay.");
         delay = delay_;
 
         emit NewDelay(delay);
     }
 
     function acceptAdmin() public {
-        require(msg.sender == pendingAdmin, "EliteTimelock::acceptAdmin: Call must come from pendingAdmin.");
+        require(msg.sender == pendingAdmin, "XswapTimelock::acceptAdmin: Call must come from pendingAdmin.");
         admin = msg.sender;
         pendingAdmin = address(0);
 
@@ -51,15 +51,15 @@ contract EliteTimelock {
     }
 
     function setPendingAdmin(address pendingAdmin_) public {
-        require(msg.sender == address(this), "EliteTimelock::setPendingAdmin: Call must come from EliteTimelock.");
+        require(msg.sender == address(this), "XswapTimelock::setPendingAdmin: Call must come from XswapTimelock.");
         pendingAdmin = pendingAdmin_;
 
         emit NewPendingAdmin(pendingAdmin);
     }
 
     function queueTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public returns (bytes32) {
-        require(msg.sender == admin, "EliteTimelock::queueTransaction: Call must come from admin.");
-        require(eta >= getBlockTimestamp().add(delay), "EliteTimelock::queueTransaction: Estimated execution block must satisfy delay.");
+        require(msg.sender == admin, "XswapTimelock::queueTransaction: Call must come from admin.");
+        require(eta >= getBlockTimestamp().add(delay), "XswapTimelock::queueTransaction: Estimated execution block must satisfy delay.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = true;
@@ -69,7 +69,7 @@ contract EliteTimelock {
     }
 
     function cancelTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public {
-        require(msg.sender == admin, "EliteTimelock::cancelTransaction: Call must come from admin.");
+        require(msg.sender == admin, "XswapTimelock::cancelTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = false;
@@ -78,12 +78,12 @@ contract EliteTimelock {
     }
 
     function executeTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public payable returns (bytes memory) {
-        require(msg.sender == admin, "EliteTimelock::executeTransaction: Call must come from admin.");
+        require(msg.sender == admin, "XswapTimelock::executeTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
-        require(queuedTransactions[txHash], "EliteTimelock::executeTransaction: Transaction hasn't been queued.");
-        require(getBlockTimestamp() >= eta, "EliteTimelock::executeTransaction: Transaction hasn't surpassed time lock.");
-        require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "EliteTimelock::executeTransaction: Transaction is stale.");
+        require(queuedTransactions[txHash], "XswapTimelock::executeTransaction: Transaction hasn't been queued.");
+        require(getBlockTimestamp() >= eta, "XswapTimelock::executeTransaction: Transaction hasn't surpassed time lock.");
+        require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "XswapTimelock::executeTransaction: Transaction is stale.");
 
         queuedTransactions[txHash] = false;
 
@@ -97,7 +97,7 @@ contract EliteTimelock {
 
         // solium-disable-next-line security/no-call-value
         (bool success, bytes memory returnData) = target.call.value(value)(callData);
-        require(success, "EliteTimelock::executeTransaction: Transaction execution reverted.");
+        require(success, "XswapTimelock::executeTransaction: Transaction execution reverted.");
 
         emit ExecuteTransaction(txHash, target, value, signature, data, eta);
 

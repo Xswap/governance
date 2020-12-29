@@ -2,18 +2,18 @@ import chai, { expect } from 'chai'
 import { Contract, constants } from 'ethers'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import EliteswapV2Factory from '@eliteswap/v2-core/build/EliteswapV2Factory.json'
-import EliteswapV2Pair from '@eliteswap/v2-core/build/EliteswapV2Pair.json'
-import EliteFeeToSetter from '../../build/EliteFeeToSetter.json'
-import EliteFeeTo from '../../build/EliteFeeTo.json'
-import Elt from '../../build/Elt.json'
+import XswapV2Factory from '@xswap/v2-core/build/xswapV2Factory.json'
+import XswapV2Pair from '@xswap/v2-core/build/XswapV2Pair.json'
+import XswapFeeToSetter from '../../build/XswapFeeToSetter.json'
+import XswapFeeTo from '../../build/XswapFeeTo.json'
+import Xswap from '../../build/Xswap.json'
 
 import { governanceFixture } from '../fixtures'
 import { mineBlock, expandTo18Decimals } from '../utils'
 
 chai.use(solidity)
 
-describe('scenario:EliteFeeTo', () => {
+describe('scenario:XswapFeeTo', () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: 'istanbul',
@@ -29,8 +29,8 @@ describe('scenario:EliteFeeTo', () => {
   })
 
   let factory: Contract
-  beforeEach('deploy eliteswap v2', async () => {
-    factory = await deployContract(wallet, EliteswapV2Factory, [wallet.address])
+  beforeEach('deploy xswap v2', async () => {
+    factory = await deployContract(wallet, XswapV2Factory, [wallet.address])
   })
 
   let feeToSetter: Contract
@@ -39,13 +39,13 @@ describe('scenario:EliteFeeTo', () => {
   beforeEach('deploy feeToSetter vesting contract', async () => {
     // deploy feeTo
     // constructor arg should be timelock, just mocking for testing purposes
-    feeTo = await deployContract(wallet, EliteFeeTo, [wallet.address])
+    feeTo = await deployContract(wallet, XswapFeeTo, [wallet.address])
 
     const { timestamp: now } = await provider.getBlock('latest')
     vestingEnd = now + 60
     // 3rd constructor arg should be timelock, just mocking for testing purposes
     // 4th constructor arg should be feeTo, just mocking for testing purposes
-    feeToSetter = await deployContract(wallet, EliteFeeToSetter, [
+    feeToSetter = await deployContract(wallet, XswapFeeToSetter, [
       factory.address,
       vestingEnd,
       wallet.address,
@@ -59,10 +59,10 @@ describe('scenario:EliteFeeTo', () => {
   })
 
   it('permissions', async () => {
-    await expect(feeTo.connect(other).setOwner(other.address)).to.be.revertedWith('EliteFeeTo::setOwner: not allowed')
+    await expect(feeTo.connect(other).setOwner(other.address)).to.be.revertedWith('XswapFeeTo::setOwner: not allowed')
 
     await expect(feeTo.connect(other).setFeeRecipient(other.address)).to.be.revertedWith(
-      'EliteFeeTo::setFeeRecipient: not allowed'
+      'XswapFeeTo::setFeeRecipient: not allowed'
     )
   })
 
@@ -70,9 +70,9 @@ describe('scenario:EliteFeeTo', () => {
     const tokens: Contract[] = []
     beforeEach('make test tokens', async () => {
       const { timestamp: now } = await provider.getBlock('latest')
-      const token0 = await deployContract(wallet, Elt, [wallet.address, constants.AddressZero, now + 60 * 60])
+      const token0 = await deployContract(wallet, Xswap, [wallet.address, constants.AddressZero, now + 60 * 60])
       tokens.push(token0)
-      const token1 = await deployContract(wallet, Elt, [wallet.address, constants.AddressZero, now + 60 * 60])
+      const token1 = await deployContract(wallet, Xswap, [wallet.address, constants.AddressZero, now + 60 * 60])
       tokens.push(token1)
     })
 
@@ -84,7 +84,7 @@ describe('scenario:EliteFeeTo', () => {
       // create the pair
       await factory.createPair(tokens[0].address, tokens[1].address)
       const pairAddress = await factory.getPair(tokens[0].address, tokens[1].address)
-      pair = new Contract(pairAddress, EliteswapV2Pair.abi).connect(wallet)
+      pair = new Contract(pairAddress, XswapV2Pair.abi).connect(wallet)
 
       // add liquidity
       await tokens[0].transfer(pair.address, expandTo18Decimals(1))

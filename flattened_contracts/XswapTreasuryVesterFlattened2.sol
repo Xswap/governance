@@ -185,10 +185,10 @@ library SafeMath {
     }
 }
 
-contract EliteTreasuryVester {
+contract XswapTreasuryVester {
     using SafeMath for uint;
 
-    address public elt;
+    address public xswap;
     address public recipient;
 
     uint public vestingAmount;
@@ -199,18 +199,18 @@ contract EliteTreasuryVester {
     uint public lastUpdate;
 
     constructor(
-        address elt_,
+        address xswap_,
         address recipient_,
         uint vestingAmount_,
         uint vestingBegin_,
         uint vestingCliff_,
         uint vestingEnd_
     ) public {
-        require(vestingBegin_ >= block.timestamp, 'EliteTreasuryVester::constructor: vesting begin too early');
-        require(vestingCliff_ >= vestingBegin_, 'EliteTreasuryVester::constructor: cliff is too early');
-        require(vestingEnd_ > vestingCliff_, 'EliteTreasuryVester::constructor: end is too early');
+        require(vestingBegin_ >= block.timestamp, 'XswapTreasuryVester::constructor: vesting begin too early');
+        require(vestingCliff_ >= vestingBegin_, 'XswapTreasuryVester::constructor: cliff is too early');
+        require(vestingEnd_ > vestingCliff_, 'XswapTreasuryVester::constructor: end is too early');
 
-        elt = elt_;
+        xswap = xswap_;
         recipient = recipient_;
 
         vestingAmount = vestingAmount_;
@@ -222,24 +222,24 @@ contract EliteTreasuryVester {
     }
 
     function setRecipient(address recipient_) public {
-        require(msg.sender == recipient, 'EliteTreasuryVester::setRecipient: unauthorized');
+        require(msg.sender == recipient, 'XswapTreasuryVester::setRecipient: unauthorized');
         recipient = recipient_;
     }
 
     function claim() public {
-        require(block.timestamp >= vestingCliff, 'EliteTreasuryVester::claim: not time yet');
+        require(block.timestamp >= vestingCliff, 'XswapTreasuryVester::claim: not time yet');
         uint amount;
         if (block.timestamp >= vestingEnd) {
-            amount = IElt(elt).balanceOf(address(this));
+            amount = IXswap(xswap).balanceOf(address(this));
         } else {
             amount = vestingAmount.mul(block.timestamp - lastUpdate).div(vestingEnd - vestingBegin);
             lastUpdate = block.timestamp;
         }
-        IElt(elt).transfer(recipient, amount);
+        IXswap(xswap).transfer(recipient, amount);
     }
 }
 
-interface IElt {
+interface IXswap {
     function balanceOf(address account) external view returns (uint);
     function transfer(address dst, uint rawAmount) external returns (bool);
 }

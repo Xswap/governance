@@ -7,7 +7,7 @@ import { DELAY } from './utils'
 
 chai.use(solidity)
 
-describe('EliteGovernorAlpha', () => {
+describe('XswapGovernorAlpha', () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: 'istanbul',
@@ -18,19 +18,19 @@ describe('EliteGovernorAlpha', () => {
   const [wallet] = provider.getWallets()
   const loadFixture = createFixtureLoader([wallet], provider)
 
-  let elt: Contract
+  let xswap: Contract
   let timelock: Contract
   let governorAlpha: Contract
   beforeEach(async () => {
     const fixture = await loadFixture(governanceFixture)
-    elt = fixture.elt
+    xswap = fixture.xswap
     timelock = fixture.timelock
     governorAlpha = fixture.governorAlpha
   })
 
-  it('elt', async () => {
-    const balance = await elt.balanceOf(wallet.address)
-    const totalSupply = await elt.totalSupply()
+  it('xswap', async () => {
+    const balance = await xswap.balanceOf(wallet.address)
+    const totalSupply = await xswap.totalSupply()
     expect(balance).to.be.eq(totalSupply)
   })
 
@@ -48,7 +48,7 @@ describe('EliteGovernorAlpha', () => {
     expect(votingPeriod).to.be.eq(40320)
     const timelockAddress = await governorAlpha.timelock()
     expect(timelockAddress).to.be.eq(timelock.address)
-    const fromGovernor = await governorAlpha.elt()
-    expect(fromGovernor).to.be.eq(elt.address)
+    const fromGovernor = await governorAlpha.xswap()
+    expect(fromGovernor).to.be.eq(xswap.address)
   })
 })

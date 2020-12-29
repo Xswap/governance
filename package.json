@@ -1,7 +1,7 @@
 {
-  "name": "@eliteswap/governance",
+  "name": "@xswap/governance",
   "version": "1.0.2",
-  "description": "🏛 Governance contracts for the Elite Swap protocol",
+  "description": "🏛 Governance contracts for the XSwap protocol",
   "author": "",
   "license": "GPL-3.0-or-later",
   "files": [
@@ -17,7 +17,7 @@
     "prepublishOnly": "yarn test"
   },
   "devDependencies": {
-    "@eliteswap/v2-core": "^1.0.1",
+    "@xswap/v2-core": "^1.0.1",
     "@types/chai": "^4.2.12",
     "@types/mocha": "^8.0.3",
     "chai": "^4.2.0",
@@ -36,16 +36,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EthereumEliteswap/governance.git"
+    "url": "git+https://github.com/xswap/governance.git"
   },
   "keywords": [
-    "eliteswap",
+    "xswap",
     "ethereum",
     "governance",
-    "elt"
+    "xswap"
   ],
   "bugs": {
-    "url": "https://github.com/EthereumEliteswap/governance/issues"
+    "url": "https://github.com/xswap/governance/issues"
   },
-  "homepage": "https://eliteswap.org"
+  "homepage": "https://xswap.org"
 }
