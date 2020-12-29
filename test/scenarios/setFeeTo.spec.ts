@@ -31,7 +31,7 @@ describe('scenario:setFeeTo', () => {
   })
 
   let factory: Contract
-  beforeEach('deploy Xswap v2', async () => {
+  beforeEach('deploy xswap v2', async () => {
     factory = await deployContract(wallet, XswapV2Factory, [timelock.address])
   })
 
