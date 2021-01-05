@@ -1,15 +1,15 @@
 pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 
-contract XswapGovernorAlpha {
+contract NikiGovernorAlpha {
     /// @notice The name of this contract
-    string public constant name = "Xswap Governor Alpha";
+    string public constant name = "Niki Governor Alpha";
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public pure returns (uint) { return 400_000_000e18; } // 4% of Xswap
+    function quorumVotes() public pure returns (uint) { return 400_000_000e18; } // 4% of Niki
 
     /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public pure returns (uint) { return 100_000_000e18; } // 1% of Xswap
+    function proposalThreshold() public pure returns (uint) { return 100_000_000e18; } // 1% of Niki
 
     /// @notice The maximum number of actions that can be included in a proposal
     function proposalMaxOperations() public pure returns (uint) { return 10; } // 10 actions
@@ -20,11 +20,11 @@ contract XswapGovernorAlpha {
     /// @notice The duration of voting on a proposal, in blocks
     function votingPeriod() public pure returns (uint) { return 40_320; } // ~7 days in blocks (assuming 15s blocks)
 
-    /// @notice The address of the Xswap Protocol Timelock
-    XswapTimelockInterface public timelock;
+    /// @notice The address of the Niki Protocol Timelock
+    NikiTimelockInterface public timelock;
 
-    /// @notice The address of the Xswap governance token
-    XswapInterface public xswap;
+    /// @notice The address of the Niki governance token
+    NikiInterface public Niki;
 
     /// @notice The total number of proposals
     uint public proposalCount;
@@ -118,28 +118,28 @@ contract XswapGovernorAlpha {
     /// @notice An event emitted when a proposal has been canceled
     event ProposalCanceled(uint id);
 
-    /// @notice An event emitted when a proposal has been queued in the XswapTimelock
+    /// @notice An event emitted when a proposal has been queued in the NikiTimelock
     event ProposalQueued(uint id, uint eta);
 
-    /// @notice An event emitted when a proposal has been executed in the XswapTimelock
+    /// @notice An event emitted when a proposal has been executed in the NikiTimelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address xswap_) public {
-        timelock = XswapTimelockInterface(timelock_);
-        xswap = XswapInterface(xswap_);
+    constructor(address timelock_, address Niki_) public {
+        timelock = NikiTimelockInterface(timelock_);
+        Niki = NikiInterface(Niki_);
     }
 
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        require(xswap.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "XswapGovernorAlpha::propose: proposer votes below proposal threshold");
-        require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "XswapGovernorAlpha::propose: proposal function information arity mismatch");
-        require(targets.length != 0, "XswapGovernorAlpha::propose: must provide actions");
-        require(targets.length <= proposalMaxOperations(), "XswapGovernorAlpha::propose: too many actions");
+        require(Niki.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "NikiGovernorAlpha::propose: proposer votes below proposal threshold");
+        require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "NikiGovernorAlpha::propose: proposal function information arity mismatch");
+        require(targets.length != 0, "NikiGovernorAlpha::propose: must provide actions");
+        require(targets.length <= proposalMaxOperations(), "NikiGovernorAlpha::propose: too many actions");
 
         uint latestProposalId = latestProposalIds[msg.sender];
         if (latestProposalId != 0) {
           ProposalState proposersLatestProposalState = state(latestProposalId);
-          require(proposersLatestProposalState != ProposalState.Active, "XswapGovernorAlpha::propose: one live proposal per proposer, found an already active proposal");
-          require(proposersLatestProposalState != ProposalState.Pending, "XswapGovernorAlpha::propose: one live proposal per proposer, found an already pending proposal");
+          require(proposersLatestProposalState != ProposalState.Active, "NikiGovernorAlpha::propose: one live proposal per proposer, found an already active proposal");
+          require(proposersLatestProposalState != ProposalState.Pending, "NikiGovernorAlpha::propose: one live proposal per proposer, found an already pending proposal");
         }
 
         uint startBlock = add256(block.number, votingDelay());
@@ -170,7 +170,7 @@ contract XswapGovernorAlpha {
     }
 
     function queue(uint proposalId) public {
-        require(state(proposalId) == ProposalState.Succeeded, "XswapGovernorAlpha::queue: proposal can only be queued if it is succeeded");
+        require(state(proposalId) == ProposalState.Succeeded, "NikiGovernorAlpha::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
         uint eta = add256(block.timestamp, timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -181,12 +181,12 @@ contract XswapGovernorAlpha {
     }
 
     function _queueOrRevert(address target, uint value, string memory signature, bytes memory data, uint eta) internal {
-        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "XswapGovernorAlpha::_queueOrRevert: proposal action already queued at eta");
+        require(!timelock.queuedTransactions(keccak256(abi.encode(target, value, signature, data, eta))), "NikiGovernorAlpha::_queueOrRevert: proposal action already queued at eta");
         timelock.queueTransaction(target, value, signature, data, eta);
     }
 
     function execute(uint proposalId) public payable {
-        require(state(proposalId) == ProposalState.Queued, "XswapGovernorAlpha::execute: proposal can only be executed if it is queued");
+        require(state(proposalId) == ProposalState.Queued, "NikiGovernorAlpha::execute: proposal can only be executed if it is queued");
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -197,10 +197,10 @@ contract XswapGovernorAlpha {
 
     function cancel(uint proposalId) public {
         ProposalState state = state(proposalId);
-        require(state != ProposalState.Executed, "XswapGovernorAlpha::cancel: cannot cancel executed proposal");
+        require(state != ProposalState.Executed, "NikiGovernorAlpha::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
-        require(xswap.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "XswapGovernorAlpha::cancel: proposer above threshold");
+        require(Niki.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "NikiGovernorAlpha::cancel: proposer above threshold");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -220,7 +220,7 @@ contract XswapGovernorAlpha {
     }
 
     function state(uint proposalId) public view returns (ProposalState) {
-        require(proposalCount >= proposalId && proposalId > 0, "XswapGovernorAlpha::state: invalid proposal id");
+        require(proposalCount >= proposalId && proposalId > 0, "NikiGovernorAlpha::state: invalid proposal id");
         Proposal storage proposal = proposals[proposalId];
         if (proposal.canceled) {
             return ProposalState.Canceled;
@@ -250,16 +250,16 @@ contract XswapGovernorAlpha {
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "XswapGovernorAlpha::castVoteBySig: invalid signature");
+        require(signatory != address(0), "NikiGovernorAlpha::castVoteBySig: invalid signature");
         return _castVote(signatory, proposalId, support);
     }
 
     function _castVote(address voter, uint proposalId, bool support) internal {
-        require(state(proposalId) == ProposalState.Active, "XswapGovernorAlpha::_castVote: voting is closed");
+        require(state(proposalId) == ProposalState.Active, "NikiGovernorAlpha::_castVote: voting is closed");
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
-        require(receipt.hasVoted == false, "XswapGovernorAlpha::_castVote: voter already voted");
-        uint96 votes = xswap.getPriorVotes(voter, proposal.startBlock);
+        require(receipt.hasVoted == false, "NikiGovernorAlpha::_castVote: voter already voted");
+        uint96 votes = Niki.getPriorVotes(voter, proposal.startBlock);
 
         if (support) {
             proposal.forVotes = add256(proposal.forVotes, votes);
@@ -292,7 +292,7 @@ contract XswapGovernorAlpha {
     }
 }
 
-interface XswapTimelockInterface {
+interface NikiTimelockInterface {
     function delay() external view returns (uint);
     function GRACE_PERIOD() external view returns (uint);
     function acceptAdmin() external;
@@ -302,6 +302,6 @@ interface XswapTimelockInterface {
     function executeTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external payable returns (bytes memory);
 }
 
-interface XswapInterface {
+interface NikiInterface {
     function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
 }

@@ -708,10 +708,10 @@
     typedarray-to-buffer "^3.1.5"
     yaeti "^0.0.6"
 
-"@xswap/v2-core@^1.0.1":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@xswap/v2-core/-/v2-core-1.0.5.tgz#b4a2e770a24e0d62b9e2b914ed8b0393b72069b3"
-  integrity sha512-Kgnv9ZtksvZ604OC/PlAsGhAkXgvAymSf+ejQ3bwbnDTjMtobk4qv8nc7jEJyHyCiM6ain2GUzJQLFA3Abxwdw==
+"@niki/v2-core@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@niki/v2-core/-/v2-core-1.0.1.tgz#1f388deca2b0c6f62f66cadfa8dfa00ab91664f6"
+  integrity sha512-0hGDRlvU02/uOLrwyKGP/gH1zakzaZtNITTtVAPdA0j4M9zFldU6ON42ztkI3rRc+1I/OLvkCEi5/+6CCtZDHg==
   dependencies:
     abstract-leveldown "^5.0.0"
     accepts "^1.3.7"

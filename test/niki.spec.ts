@@ -6,7 +6,7 @@ import { ecsign } from 'ethereumjs-util'
 import { governanceFixture } from './fixtures'
 import { expandTo18Decimals, mineBlock } from './utils'
 
-import Xswap from '../build/Xswap.json'
+import Niki from '../build/Niki.json'
 
 chai.use(solidity)
 
@@ -18,7 +18,7 @@ const PERMIT_TYPEHASH = utils.keccak256(
   utils.toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)')
 )
 
-describe('Xswap', () => {
+describe('Niki', () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: 'istanbul',
@@ -29,24 +29,24 @@ describe('Xswap', () => {
   const [wallet, other0, other1] = provider.getWallets()
   const loadFixture = createFixtureLoader([wallet], provider)
 
-  let xswap: Contract
+  let niki: Contract
   beforeEach(async () => {
     const fixture = await loadFixture(governanceFixture)
-    xswap = fixture.xswap
+    niki = fixture.niki
   })
 
   it('permit', async () => {
     const domainSeparator = utils.keccak256(
       utils.defaultAbiCoder.encode(
         ['bytes32', 'bytes32', 'uint256', 'address'],
-        [DOMAIN_TYPEHASH, utils.keccak256(utils.toUtf8Bytes('Xswap')), 1, xswap.address]
+        [DOMAIN_TYPEHASH, utils.keccak256(utils.toUtf8Bytes('Niki')), 1, niki.address]
       )
     )
 
     const owner = wallet.address
     const spender = other0.address
     const value = 123
-    const nonce = await xswap.nonces(wallet.address)
+    const nonce = await niki.nonces(wallet.address)
     const deadline = constants.MaxUint256
     const digest = utils.keccak256(
       utils.solidityPack(
@@ -67,57 +67,57 @@ describe('Xswap', () => {
 
     const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
 
-    await xswap.permit(owner, spender, value, deadline, v, utils.hexlify(r), utils.hexlify(s))
-    expect(await xswap.allowance(owner, spender)).to.eq(value)
-    expect(await xswap.nonces(owner)).to.eq(1)
+    await niki.permit(owner, spender, value, deadline, v, utils.hexlify(r), utils.hexlify(s))
+    expect(await niki.allowance(owner, spender)).to.eq(value)
+    expect(await niki.nonces(owner)).to.eq(1)
 
-    await xswap.connect(other0).transferFrom(owner, spender, value)
+    await niki.connect(other0).transferFrom(owner, spender, value)
   })
 
   it('nested delegation', async () => {
-    await xswap.transfer(other0.address, expandTo18Decimals(1))
-    await xswap.transfer(other1.address, expandTo18Decimals(2))
+    await niki.transfer(other0.address, expandTo18Decimals(1))
+    await niki.transfer(other1.address, expandTo18Decimals(2))
 
-    let currectVotes0 = await xswap.getCurrentVotes(other0.address)
-    let currectVotes1 = await xswap.getCurrentVotes(other1.address)
+    let currectVotes0 = await niki.getCurrentVotes(other0.address)
+    let currectVotes1 = await niki.getCurrentVotes(other1.address)
     expect(currectVotes0).to.be.eq(0)
     expect(currectVotes1).to.be.eq(0)
 
-    await xswap.connect(other0).delegate(other1.address)
-    currectVotes1 = await xswap.getCurrentVotes(other1.address)
+    await niki.connect(other0).delegate(other1.address)
+    currectVotes1 = await niki.getCurrentVotes(other1.address)
     expect(currectVotes1).to.be.eq(expandTo18Decimals(1))
 
-    await xswap.connect(other1).delegate(other1.address)
-    currectVotes1 = await xswap.getCurrentVotes(other1.address)
+    await niki.connect(other1).delegate(other1.address)
+    currectVotes1 = await niki.getCurrentVotes(other1.address)
     expect(currectVotes1).to.be.eq(expandTo18Decimals(1).add(expandTo18Decimals(2)))
 
-    await xswap.connect(other1).delegate(wallet.address)
-    currectVotes1 = await xswap.getCurrentVotes(other1.address)
+    await niki.connect(other1).delegate(wallet.address)
+    currectVotes1 = await niki.getCurrentVotes(other1.address)
     expect(currectVotes1).to.be.eq(expandTo18Decimals(1))
   })
 
   it('mints', async () => {
     const { timestamp: now } = await provider.getBlock('latest')
-    const xswap = await deployContract(wallet, Xswap, [wallet.address, wallet.address, now + 60 * 60])
-    const supply = await xswap.totalSupply()
+    const niki = await deployContract(wallet, Niki, [wallet.address, wallet.address, now + 60 * 60])
+    const supply = await niki.totalSupply()
 
-    await expect(xswap.mint(wallet.address, 1)).to.be.revertedWith('Xswap::mint: minting not allowed yet')
+    await expect(niki.mint(wallet.address, 1)).to.be.revertedWith('Niki::mint: minting not allowed yet')
 
-    let timestamp = await xswap.mintingAllowedAfter()
+    let timestamp = await niki.mintingAllowedAfter()
     await mineBlock(provider, timestamp.toString())
 
-    await expect(xswap.connect(other1).mint(other1.address, 1)).to.be.revertedWith('Xswap::mint: only the minter can mint')
-    await expect(xswap.mint('0x0000000000000000000000000000000000000000', 1)).to.be.revertedWith('Xswap::mint: cannot transfer to the zero address')
+    await expect(niki.connect(other1).mint(other1.address, 1)).to.be.revertedWith('Niki::mint: only the minter can mint')
+    await expect(niki.mint('0x0000000000000000000000000000000000000000', 1)).to.be.revertedWith('Niki::mint: cannot transfer to the zero address')
 
     // can mint up to 2%
-    const mintCap = BigNumber.from(await xswap.mintCap())
+    const mintCap = BigNumber.from(await niki.mintCap())
     const amount = supply.mul(mintCap).div(100)
-    await xswap.mint(wallet.address, amount)
-    expect(await xswap.balanceOf(wallet.address)).to.be.eq(supply.add(amount))
+    await niki.mint(wallet.address, amount)
+    expect(await niki.balanceOf(wallet.address)).to.be.eq(supply.add(amount))
 
-    timestamp = await xswap.mintingAllowedAfter()
+    timestamp = await niki.mintingAllowedAfter()
     await mineBlock(provider, timestamp.toString())
     // cannot mint 2.01%
-    await expect(xswap.mint(wallet.address, supply.mul(mintCap.add(1)))).to.be.revertedWith('Xswap::mint: exceeded mint cap')
+    await expect(niki.mint(wallet.address, supply.mul(mintCap.add(1)))).to.be.revertedWith('Niki::mint: exceeded mint cap')
   })
 })

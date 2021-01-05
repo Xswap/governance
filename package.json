@@ -1,7 +1,7 @@
 {
-  "name": "@xswap/governance",
-  "version": "1.0.0",
-  "description": "🏛 Governance contracts for the XSwap protocol",
+  "name": "@nikiswap/governance",
+  "version": "1.0.2",
+  "description": "🏛 Governance contracts for the NikiSwap protocol",
   "author": "",
   "license": "GPL-3.0-or-later",
   "files": [
@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.12",
     "@types/mocha": "^7.2.0",
-    "@xswap/v2-core": "^1.0.1",
+    "@nikiswap/v2-core": "^1.0.1",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.1.0",
     "ethereumjs-util": "^7.0.4",
@@ -36,18 +36,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xswap/governance.git"
+    "url": "git+https://github.com/nikiswap/governance.git"
   },
   "keywords": [
-    "xswap",
+    "nikiswap",
     "ethereum",
     "governance",
-    "xswap"
+    "nikiswap"
   ],
   "bugs": {
-    "url": "https://github.com/xswap/governance/issues"
+    "url": "https://github.com/nikiswap/governance/issues"
   },
-  "homepage": "https://xswap.org",
+  "homepage": "https://nikiswap.org",
   "dependencies": {
     "@types/jquery": "^3.5.5"
   }

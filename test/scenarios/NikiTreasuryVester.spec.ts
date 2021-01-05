@@ -2,14 +2,14 @@ import chai, { expect } from 'chai'
 import { Contract, BigNumber } from 'ethers'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import XswapTreasuryVester from '../../build/XswapTreasuryVester.json'
+import NikiTreasuryVester from '../../build/NikiTreasuryVester.json'
 
 import { governanceFixture } from '../fixtures'
 import { mineBlock, expandTo18Decimals } from '../utils'
 
 chai.use(solidity)
 
-describe('scenario:XswapTreasuryVester', () => {
+describe('scenario:NikiTreasuryVester', () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: 'istanbul',
@@ -20,11 +20,11 @@ describe('scenario:XswapTreasuryVester', () => {
   const [wallet] = provider.getWallets()
   const loadFixture = createFixtureLoader([wallet], provider)
 
-  let xswap: Contract
+  let niki: Contract
   let timelock: Contract
   beforeEach(async () => {
     const fixture = await loadFixture(governanceFixture)
-    xswap = fixture.xswap
+    niki = fixture.niki
     timelock = fixture.timelock
   })
 
@@ -39,8 +39,8 @@ describe('scenario:XswapTreasuryVester', () => {
     vestingBegin = now + 60
     vestingCliff = vestingBegin + 60
     vestingEnd = vestingBegin + 60 * 60 * 24 * 365
-    treasuryVester = await deployContract(wallet, XswapTreasuryVester, [
-      xswap.address,
+    treasuryVester = await deployContract(wallet, NikiTreasuryVester, [
+      niki.address,
       timelock.address,
       vestingAmount,
       vestingBegin,
@@ -49,32 +49,32 @@ describe('scenario:XswapTreasuryVester', () => {
     ])
 
     // fund the treasury
-    await xswap.transfer(treasuryVester.address, vestingAmount)
+    await niki.transfer(treasuryVester.address, vestingAmount)
   })
 
   it('setRecipient:fail', async () => {
     await expect(treasuryVester.setRecipient(wallet.address)).to.be.revertedWith(
-      'XswapTreasuryVester::setRecipient: unauthorized'
+      'NikiTreasuryVester::setRecipient: unauthorized'
     )
   })
 
   it('claim:fail', async () => {
-    await expect(treasuryVester.claim()).to.be.revertedWith('XswapTreasuryVester::claim: not time yet')
+    await expect(treasuryVester.claim()).to.be.revertedWith('NikiTreasuryVester::claim: not time yet')
     await mineBlock(provider, vestingBegin + 1)
-    await expect(treasuryVester.claim()).to.be.revertedWith('XswapTreasuryVester::claim: not time yet')
+    await expect(treasuryVester.claim()).to.be.revertedWith('NikiTreasuryVester::claim: not time yet')
   })
 
   it('claim:~half', async () => {
     await mineBlock(provider, vestingBegin + Math.floor((vestingEnd - vestingBegin) / 2))
     await treasuryVester.claim()
-    const balance = await xswap.balanceOf(timelock.address)
+    const balance = await niki.balanceOf(timelock.address)
     expect(vestingAmount.div(2).sub(balance).abs().lte(vestingAmount.div(2).div(10000))).to.be.true
   })
 
   it('claim:all', async () => {
     await mineBlock(provider, vestingEnd)
     await treasuryVester.claim()
-    const balance = await xswap.balanceOf(timelock.address)
+    const balance = await niki.balanceOf(timelock.address)
     expect(balance).to.be.eq(vestingAmount)
   })
 })

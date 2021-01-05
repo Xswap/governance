@@ -2,15 +2,15 @@ import chai, { expect } from 'chai'
 import { Contract, constants } from 'ethers'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import XswapV2Factory from '@xswap/v2-core/build/XswapV2Factory.json'
-import XswapFeeToSetter from '../../build/XswapFeeToSetter.json'
+import NikiswapV2Factory from '@nikiswap/v2-core/build/NikiswapV2Factory.json'
+import NikiFeeToSetter from '../../build/NikiFeeToSetter.json'
 
 import { governanceFixture } from '../fixtures'
 import { mineBlock } from '../utils'
 
 chai.use(solidity)
 
-describe('scenario:XswapFeeToSetter', () => {
+describe('scenario:NikiFeeToSetter', () => {
   const provider = new MockProvider({
     ganacheOptions: {
       hardfork: 'istanbul',
@@ -26,8 +26,8 @@ describe('scenario:XswapFeeToSetter', () => {
   })
 
   let factory: Contract
-  beforeEach('deploy xswap v2', async () => {
-    factory = await deployContract(wallet, XswapV2Factory, [wallet.address])
+  beforeEach('deploy nikiswap v2', async () => {
+    factory = await deployContract(wallet, NikiswapV2Factory, [wallet.address])
   })
 
   let feeToSetter: Contract
@@ -37,7 +37,7 @@ describe('scenario:XswapFeeToSetter', () => {
     vestingEnd = now + 60
     // 3rd constructor arg should be timelock, just mocking for testing purposes
     // 4th constructor arg should be feeTo, just mocking for testing purposes
-    feeToSetter = await deployContract(wallet, XswapFeeToSetter, [
+    feeToSetter = await deployContract(wallet, NikiFeeToSetter, [
       factory.address,
       vestingEnd,
       wallet.address,
@@ -50,7 +50,7 @@ describe('scenario:XswapFeeToSetter', () => {
 
   it('setOwner:fail', async () => {
     await expect(feeToSetter.connect(other).setOwner(other.address)).to.be.revertedWith(
-      'XswapFeeToSetter::setOwner: not allowed'
+      'NikiFeeToSetter::setOwner: not allowed'
     )
   })
 
@@ -60,11 +60,11 @@ describe('scenario:XswapFeeToSetter', () => {
 
   it('setFeeToSetter:fail', async () => {
     await expect(feeToSetter.setFeeToSetter(other.address)).to.be.revertedWith(
-      'XswapFeeToSetter::setFeeToSetter: not time yet'
+      'NikiFeeToSetter::setFeeToSetter: not time yet'
     )
     await mineBlock(provider, vestingEnd)
     await expect(feeToSetter.connect(other).setFeeToSetter(other.address)).to.be.revertedWith(
-      'XswapFeeToSetter::setFeeToSetter: not allowed'
+      'NikiFeeToSetter::setFeeToSetter: not allowed'
     )
   })
 
@@ -74,9 +74,9 @@ describe('scenario:XswapFeeToSetter', () => {
   })
 
   it('toggleFees:fail', async () => {
-    await expect(feeToSetter.toggleFees(true)).to.be.revertedWith('XswapFeeToSetter::toggleFees: not time yet')
+    await expect(feeToSetter.toggleFees(true)).to.be.revertedWith('NikiFeeToSetter::toggleFees: not time yet')
     await mineBlock(provider, vestingEnd)
-    await expect(feeToSetter.connect(other).toggleFees(true)).to.be.revertedWith('XswapFeeToSetter::toggleFees: not allowed')
+    await expect(feeToSetter.connect(other).toggleFees(true)).to.be.revertedWith('NikiFeeToSetter::toggleFees: not allowed')
   })
 
   it('toggleFees', async () => {

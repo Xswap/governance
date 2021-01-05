@@ -2,10 +2,10 @@ pragma solidity ^0.5.16;
 
 import "./SafeMath.sol";
 
-contract EliteTreasuryVester {
+contract NikiTreasuryVester {
     using SafeMath for uint;
 
-    address public xswap;
+    address public niki;
     address public recipient;
 
     uint public vestingAmount;
@@ -16,7 +16,7 @@ contract EliteTreasuryVester {
     uint public lastUpdate;
 
     constructor(
-        address xswap_,
+        address niki_,
         address recipient_,
         uint vestingAmount_,
         uint vestingBegin_,
@@ -27,7 +27,7 @@ contract EliteTreasuryVester {
         require(vestingCliff_ >= vestingBegin_, 'EliteTreasuryVester::constructor: cliff is too early');
         require(vestingEnd_ > vestingCliff_, 'EliteTreasuryVester::constructor: end is too early');
 
-        xswap = xswap_;
+        niki = niki_;
         recipient = recipient_;
 
         vestingAmount = vestingAmount_;
@@ -47,16 +47,16 @@ contract EliteTreasuryVester {
         require(block.timestamp >= vestingCliff, 'EliteTreasuryVester::claim: not time yet');
         uint amount;
         if (block.timestamp >= vestingEnd) {
-            amount = IXswap(xswap).balanceOf(address(this));
+            amount = INiki(niki).balanceOf(address(this));
         } else {
             amount = vestingAmount.mul(block.timestamp - lastUpdate).div(vestingEnd - vestingBegin);
             lastUpdate = block.timestamp;
         }
-        IXswap(xswap).transfer(recipient, amount);
+        INiki(niki).transfer(recipient, amount);
     }
 }
 
-interface IXswap {
+interface INiki {
     function balanceOf(address account) external view returns (uint);
     function transfer(address dst, uint rawAmount) external returns (bool);
 }

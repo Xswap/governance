@@ -2,7 +2,7 @@ pragma solidity ^0.5.16;
 
 import "./SafeMath.sol";
 
-contract XswapTimelock {
+contract NikiTimelock {
     using SafeMath for uint;
 
     event NewAdmin(address indexed newAdmin);
@@ -24,8 +24,8 @@ contract XswapTimelock {
 
 
     constructor(address admin_, uint delay_) public {
-        require(delay_ >= MINIMUM_DELAY, "XswapTimelock::constructor: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "XswapTimelock::setDelay: Delay must not exceed maximum delay.");
+        require(delay_ >= MINIMUM_DELAY, "NikiTimelock::constructor: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "NikiTimelock::setDelay: Delay must not exceed maximum delay.");
 
         admin = admin_;
         delay = delay_;
@@ -34,16 +34,16 @@ contract XswapTimelock {
     function() external payable { }
 
     function setDelay(uint delay_) public {
-        require(msg.sender == address(this), "XswapTimelock::setDelay: Call must come from XswapTimelock.");
-        require(delay_ >= MINIMUM_DELAY, "XswapTimelock::setDelay: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "XswapTimelock::setDelay: Delay must not exceed maximum delay.");
+        require(msg.sender == address(this), "NikiTimelock::setDelay: Call must come from NikiTimelock.");
+        require(delay_ >= MINIMUM_DELAY, "NikiTimelock::setDelay: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "NikiTimelock::setDelay: Delay must not exceed maximum delay.");
         delay = delay_;
 
         emit NewDelay(delay);
     }
 
     function acceptAdmin() public {
-        require(msg.sender == pendingAdmin, "XswapTimelock::acceptAdmin: Call must come from pendingAdmin.");
+        require(msg.sender == pendingAdmin, "NikiTimelock::acceptAdmin: Call must come from pendingAdmin.");
         admin = msg.sender;
         pendingAdmin = address(0);
 
@@ -51,15 +51,15 @@ contract XswapTimelock {
     }
 
     function setPendingAdmin(address pendingAdmin_) public {
-        require(msg.sender == address(this), "XswapTimelock::setPendingAdmin: Call must come from XswapTimelock.");
+        require(msg.sender == address(this), "NikiTimelock::setPendingAdmin: Call must come from NikiTimelock.");
         pendingAdmin = pendingAdmin_;
 
         emit NewPendingAdmin(pendingAdmin);
     }
 
     function queueTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public returns (bytes32) {
-        require(msg.sender == admin, "XswapTimelock::queueTransaction: Call must come from admin.");
-        require(eta >= getBlockTimestamp().add(delay), "XswapTimelock::queueTransaction: Estimated execution block must satisfy delay.");
+        require(msg.sender == admin, "NikiTimelock::queueTransaction: Call must come from admin.");
+        require(eta >= getBlockTimestamp().add(delay), "NikiTimelock::queueTransaction: Estimated execution block must satisfy delay.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = true;
@@ -69,7 +69,7 @@ contract XswapTimelock {
     }
 
     function cancelTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public {
-        require(msg.sender == admin, "XswapTimelock::cancelTransaction: Call must come from admin.");
+        require(msg.sender == admin, "NikiTimelock::cancelTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = false;
@@ -78,12 +78,12 @@ contract XswapTimelock {
     }
 
     function executeTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public payable returns (bytes memory) {
-        require(msg.sender == admin, "XswapTimelock::executeTransaction: Call must come from admin.");
+        require(msg.sender == admin, "NikiTimelock::executeTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
-        require(queuedTransactions[txHash], "XswapTimelock::executeTransaction: Transaction hasn't been queued.");
-        require(getBlockTimestamp() >= eta, "XswapTimelock::executeTransaction: Transaction hasn't surpassed time lock.");
-        require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "XswapTimelock::executeTransaction: Transaction is stale.");
+        require(queuedTransactions[txHash], "NikiTimelock::executeTransaction: Transaction hasn't been queued.");
+        require(getBlockTimestamp() >= eta, "NikiTimelock::executeTransaction: Transaction hasn't surpassed time lock.");
+        require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "NikiTimelock::executeTransaction: Transaction is stale.");
 
         queuedTransactions[txHash] = false;
 
@@ -97,7 +97,7 @@ contract XswapTimelock {
 
         // solium-disable-next-line security/no-call-value
         (bool success, bytes memory returnData) = target.call.value(value)(callData);
-        require(success, "XswapTimelock::executeTransaction: Transaction execution reverted.");
+        require(success, "NikiTimelock::executeTransaction: Transaction execution reverted.");
 
         emit ExecuteTransaction(txHash, target, value, signature, data, eta);
 

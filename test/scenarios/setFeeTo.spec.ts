@@ -2,7 +2,7 @@ import chai, { expect } from 'chai'
 import { Contract, BigNumber, utils } from 'ethers'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import XswapswapV2Factory from '@xswap/v2-core/build/XswapV2Factory.json'
+import NikiswapV2Factory from '@nikiswap/v2-core/build/NikiswapV2Factory.json'
 
 import { governanceFixture } from '../fixtures'
 import { mineBlock, DELAY } from '../utils'
@@ -20,19 +20,19 @@ describe('scenario:setFeeTo', () => {
   const [wallet] = provider.getWallets()
   const loadFixture = createFixtureLoader([wallet], provider)
 
-  let xswap: Contract
+  let niki: Contract
   let timelock: Contract
   let governorAlpha: Contract
   beforeEach(async () => {
     const fixture = await loadFixture(governanceFixture)
-    xswap = fixture.xswap
+    niki = fixture.niki
     timelock = fixture.timelock
     governorAlpha = fixture.governorAlpha
   })
 
   let factory: Contract
-  beforeEach('deploy xswap v2', async () => {
-    factory = await deployContract(wallet, XswapV2Factory, [timelock.address])
+  beforeEach('deploy nikiswap v2', async () => {
+    factory = await deployContract(wallet, NikiswapV2Factory, [timelock.address])
   })
 
   it('setFeeTo', async () => {
@@ -40,10 +40,10 @@ describe('scenario:setFeeTo', () => {
     const value = 0
     const signature = 'setFeeTo(address)'
     const calldata = utils.defaultAbiCoder.encode(['address'], [timelock.address])
-    const description = 'Set feeTo on the XswapV2Factory to the timelock address.'
+    const description = 'Set feeTo on the NikiswapV2Factory to the timelock address.'
 
     // activate balances
-    await xswap.delegate(wallet.address)
+    await niki.delegate(wallet.address)
     const { timestamp: now } = await provider.getBlock('latest')
     await mineBlock(provider, now)
 
