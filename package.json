@@ -1,54 +1,32 @@
 {
   "name": "@nikiswap/governance",
-  "version": "1.0.3",
-  "description": "🏛 Governance contracts for the NikiSwap protocol",
-  "author": "",
-  "license": "GPL-3.0-or-later",
+  "version": "1.0.5",
+  "description": "🏛 Governance contracts for the Nikiswap protocol",
+  "author": "Noah Zinsmeister",
+  "license": "MIT",
   "files": [
-    "contracts",
     "build"
   ],
   "scripts": {
     "precompile": "rimraf ./build/",
     "compile": "waffle",
     "pretest": "yarn compile",
-    "test": "mocha --timeout 50000 -R mocha-multi",
+    "test": "mocha",
     "lint": "prettier ./test/**/*.ts --check",
     "prepublishOnly": "yarn test"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",
-    "@types/mocha": "^7.2.0",
+    "@types/mocha": "^8.0.3",
     "@nikiswap/v2-core": "^1.0.1",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.1.0",
     "ethereumjs-util": "^7.0.4",
-    "mocha": "^7.2.0",
+    "mocha": "^8.1.3",
     "prettier": "^2.1.1",
     "rimraf": "^3.0.2",
     "solc": "0.5.16",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
-  },
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nikiswap/governance.git"
-  },
-  "keywords": [
-    "nikiswap",
-    "ethereum",
-    "governance",
-    "nikiswap"
-  ],
-  "bugs": {
-    "url": "https://github.com/nikiswap/governance/issues"
-  },
-  "homepage": "https://nikiswap.org",
-  "dependencies": {
-    "@types/jquery": "^3.5.5"
   }
 }

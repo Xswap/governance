@@ -5,7 +5,7 @@ import "./SafeMath.sol";
 
 contract Niki {
     /// @notice EIP-20 token name for this token
-    string public constant name = "Niki Swap";
+    string public constant name = "Nikiswap";
 
     /// @notice EIP-20 token symbol for this token
     string public constant symbol = "NIKI";
@@ -14,7 +14,7 @@ contract Niki {
     uint8 public constant decimals = 18;
 
     /// @notice Total number of tokens in circulation
-    uint public totalSupply = 100_000e18; // ~100 K Niki Swap
+    uint public totalSupply = 100_000e18; // 10 k Niki
 
     /// @notice Address which may mint new tokens
     address public minter;

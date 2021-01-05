@@ -39,7 +39,7 @@ describe('Niki', () => {
     const domainSeparator = utils.keccak256(
       utils.defaultAbiCoder.encode(
         ['bytes32', 'bytes32', 'uint256', 'address'],
-        [DOMAIN_TYPEHASH, utils.keccak256(utils.toUtf8Bytes('Niki')), 1, niki.address]
+        [DOMAIN_TYPEHASH, utils.keccak256(utils.toUtf8Bytes('Nikiswap')), 1, niki.address]
       )
     )
 
