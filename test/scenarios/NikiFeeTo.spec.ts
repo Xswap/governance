@@ -30,7 +30,7 @@ describe('scenario:NikiFeeTo', () => {
 
   let factory: Contract
   beforeEach('deploy nikiswap v2', async () => {
-    factory = await deployContract(wallet, nikiswapV2Factory, [wallet.address])
+    factory = await deployContract(wallet, NikiswapV2Factory, [wallet.address])
   })
 
   let feeToSetter: Contract

@@ -57,8 +57,8 @@ contract NikiFeeTo {
 
     function renounce(address pair) public returns (uint value) {
         PairAllowState storage pairAllowState = pairAllowStates[pair];
-        TokenAllowState storage token0AllowState = tokenAllowStates[INikiV2Pair(pair).token0()];
-        TokenAllowState storage token1AllowState = tokenAllowStates[INikiV2Pair(pair).token1()];
+        TokenAllowState storage token0AllowState = tokenAllowStates[INikiswapV2Pair(pair).token0()];
+        TokenAllowState storage token1AllowState = tokenAllowStates[INikiswapV2Pair(pair).token1()];
 
         // we must renounce if any of the following four conditions are true:
         // 1) token0 is currently disallowed
@@ -71,12 +71,12 @@ contract NikiFeeTo {
             token0AllowState.disallowCount > pairAllowState.token0DisallowCount ||
             token1AllowState.disallowCount > pairAllowState.token1DisallowCount
         ) {
-            value = INikiV2Pair(pair).balanceOf(address(this));
+            value = INikiswapV2Pair(pair).balanceOf(address(this));
             if (value > 0) {
                 // burn balance into the pair, effectively redistributing underlying tokens pro-rata back to LPs
                 // (assert because transfer cannot fail with value as balanceOf)
-                assert(INikiV2Pair(pair).transfer(pair, value));
-                INikiV2Pair(pair).burn(pair);
+                assert(INikiswapV2Pair(pair).transfer(pair, value));
+                INikiswapV2Pair(pair).burn(pair);
             }
 
             // if token0 is allowed, we can now update the pair's disallow count to match the token's
@@ -92,8 +92,8 @@ contract NikiFeeTo {
 
     function claim(address pair) public returns (uint value) {
         PairAllowState storage pairAllowState = pairAllowStates[pair];
-        TokenAllowState storage token0AllowState = tokenAllowStates[INikiV2Pair(pair).token0()];
-        TokenAllowState storage token1AllowState = tokenAllowStates[INikiV2Pair(pair).token1()];
+        TokenAllowState storage token0AllowState = tokenAllowStates[INikiswapV2Pair(pair).token0()];
+        TokenAllowState storage token1AllowState = tokenAllowStates[INikiswapV2Pair(pair).token1()];
 
         // we may claim only if each of the following five conditions are true:
         // 1) token0 is currently allowed
@@ -108,16 +108,16 @@ contract NikiFeeTo {
             token1AllowState.disallowCount == pairAllowState.token1DisallowCount &&
             feeRecipient != address(0)
         ) {
-            value = INikiV2Pair(pair).balanceOf(address(this));
+            value = INikiswapV2Pair(pair).balanceOf(address(this));
             if (value > 0) {
                 // transfer tokens to the handler (assert because transfer cannot fail with value as balanceOf)
-                assert(INikiV2Pair(pair).transfer(feeRecipient, value));
+                assert(INikiswapV2Pair(pair).transfer(feeRecipient, value));
             }
         }
     }
 }
 
-interface INikiV2Pair {
+interface INikiswapV2Pair {
     function token0() external view returns (address);
     function token1() external view returns (address);
     function balanceOf(address owner) external view returns (uint);
